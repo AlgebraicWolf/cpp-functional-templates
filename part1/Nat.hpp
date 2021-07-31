@@ -3,31 +3,19 @@
 
 #include <type_traits>
 
-// Объявляем тип...
+// Define type...
 struct NatBase {};
  
 template <typename T>
 concept Nat = std::is_base_of<NatBase, T>::value;
  
-// ... и его конструкторы
+// ... along with its constructors
 struct Z : NatBase {}; // 0
  
 template <Nat n>
 struct Succ : NatBase {}; // S(n)
 
-template<Nat a, Nat b>
-struct Add {};
- 
-template<Nat a>
-struct Add<a, Z> {
-  using result = a;
-};
- 
-template<Nat a, Nat b>
-struct Add<a, Succ<b>> {
-  using result = Succ<typename Add<a, b>::result>;
-};
-
+// Helper for translation into unsigned int
 template<Nat n>
 struct NatToUnsignedInt {};
  
@@ -41,6 +29,21 @@ struct NatToUnsignedInt<Succ<n>> {
   static constexpr unsigned int value = 1 + NatToUnsignedInt<n>::value;
 };
 
+// Addition
+template<Nat a, Nat b>
+struct Add {};
+ 
+template<Nat a>
+struct Add<a, Z> {
+  using result = a;
+};
+ 
+template<Nat a, Nat b>
+struct Add<a, Succ<b>> {
+  using result = Succ<typename Add<a, b>::result>;
+};
+
+// Multiplication
 template <Nat a, Nat b>
 struct Mul {};
  
@@ -54,6 +57,7 @@ struct Mul<a, Succ<b>> {
   using result = Add<typename Mul<a, b>::result, a>::result;
 };
 
+// Equality
 template <Nat n, Nat m>
 struct Eq {
   static constexpr bool value = false; // By default numbers are not equal (this case really
@@ -71,6 +75,7 @@ struct Eq<Succ<n>, Succ<m>> {
                                                  // iff n == m
 };
 
+// Less than or equal
 template <Nat n, Nat m>
 struct LE {};
  
